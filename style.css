@@ -1,0 +1,53 @@
+.pc {
+    background-color: #9999ff;
+    border: solid;
+    border-color: black;
+    padding: 5px;
+    margin-bottom: 5px;
+}
+
+.component {
+    background-color: #b3b3ff;
+    border: solid;
+    border-color: black;
+    padding: 5px;
+    margin-bottom: 5px;
+    display: none;
+}
+
+.component2 {
+    background-color: #ccccff;
+    border: solid;
+    border-color: black;
+    padding: 5px;
+    margin-bottom: 5px;
+    display: none;
+}
+
+.component3 {
+    background-color: #e6e6ff;
+    border: solid;
+    border-color: black;
+    padding: 5px;
+    margin-bottom: 5px;
+    display: none;
+}
+
+.plus, .link-export{
+    font-weight: bold;
+    float: right;
+    margin-right: 5px;
+}
+
+.link-export:hover, .plus:hover {
+    color: blue;
+    cursor: pointer;
+}
+
+a {
+    color: black;
+}
+
+a:hover {
+    color: blue;
+}           
