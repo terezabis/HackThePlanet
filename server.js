@@ -91,6 +91,49 @@ var server = http.createServer(function (req, res) {
         });
 
     }
+
+    // serve request for file export
+    if (req.url.includes('/fileexport')) {
+        var urlParams = req.url.split('=');
+        if (urlParams.length < 2) {
+            res.write('Error: invalid URL!');
+            res.end();
+        }
+        var currentID = urlParams[1];
+
+        // query all data need for csv file
+        var sql = "SELECT (CASE WHEN EXISTS (SELECT * FROM relationships WHERE fromEquipment = " + currentID + ") THEN NULL ELSE name END) AS name1, NULL AS name2, NULL as name3, NULL as name4 FROM equipment WHERE id = " + currentID + " UNION ALL SELECT (SELECT name FROM equipment WHERE id = r1.fromEquipment) AS name1, (SELECT name FROM equipment WHERE id = r1.toEquipment) AS name2, (SELECT name FROM equipment WHERE id = r2.toEquipment) AS name3, (SELECT name FROM equipment WHERE id = r3.toEquipment) AS name4 FROM relationships AS r1 LEFT JOIN relationships AS r2 ON r2.fromEquipment = r1.toEquipment LEFT JOIN relationships AS r3 ON r3.fromEquipment = r2.toEquipment WHERE r1.fromEquipment  = " + currentID + ";"
+        con.query(sql, function (err, result) {
+            if (err) console.log(err);
+
+            var csvData = "";
+            // iterate the query results
+            Object.keys(result).forEach(function (key) {
+                var row = result[key];
+                if (row.name1 != null)
+                    csvData += row.name1 + ",";
+                if (row.name2 != null)
+                    csvData += row.name2 + ",";
+                if (row.name3 != null)
+                    csvData += row.name3 + ",";
+                if (row.name4 != null)
+                    csvData += row.name4;
+
+                if (row.name1 != null || row.name2 != null || row.name3 != null || row.name4 != null)
+                    csvData += "\n";
+            });
+
+            // generate csv file and render data in it
+            fs.writeFile('data.csv', csvData, 'utf8', function (err) {
+                res.writeHead(200, {
+                    "Content-Type": "application/octet-stream",
+                    "Content-Disposition": "attachment; filename=data.csv"
+                });
+
+                fs.createReadStream("data.csv").pipe(res);
+            });
+        });
+    }
 });
 server.listen(8080);
 
@@ -98,5 +141,5 @@ server.listen(8080);
 function generateHTMLComponent(name, classes, id, parent_id) {
     // check if this is the top level parent or not
     var plus_id = (parent_id == 0) ? "" + id : "" + parent_id + "-" + id;
-    return "<div class='" + classes + "'  data-id='" + id + "' data-parent-id='" + parent_id + "'>" + name + "<span class='link-export'><a href='' data-id='" + id + "'>export</a></span><span data-id='" + plus_id + "' class='plus'>+</span></div>";
+    return "<div class='component-container " + classes + "'  data-id='" + id + "' data-parent-id='" + parent_id + "'>" + name + "<span class='link-export'><a href='http://localhost:8080/fileexport?id=" + id + "' class='export-link' data-id='" + id + "'>export</a></span><span data-id='" + plus_id + "' class='plus'>+</span></div>";
 }
